@@ -1,0 +1,31 @@
+{
+  "name": "@jpwilliams/typescript-base",
+  "version": "0.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "develop": "ts-node src/index.ts",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpwilliams/typescript-base.git"
+  },
+  "keywords": [],
+  "author": "Jack Williams <@jpwilliams>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jpwilliams/typescript-base/issues"
+  },
+  "homepage": "https://github.com/jpwilliams/typescript-base#readme",
+  "files": [
+    "lib"
+  ],
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
+  }
+}
