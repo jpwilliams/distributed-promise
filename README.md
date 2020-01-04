@@ -7,7 +7,7 @@ npm install --save @jpwilliams/distributed-promise
 ```
 
 ``` ts
-import { DistributedPromiseWrapper } from '@jpwilliams/distributed-promise
+import { DistributedPromiseWrapper } from '@jpwilliams/distributed-promise'
 
 // a promise
 async function joinStr (...strs) {
