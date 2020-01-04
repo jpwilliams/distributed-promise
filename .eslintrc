@@ -55,6 +55,7 @@
 	],
 
 	"rules": {
+		"@typescript-eslint/no-explicit-any": 0,
 		"accessor-pairs": "error",
 		"arrow-spacing": ["error", { "before": true, "after": true }],
 		"block-spacing": ["error", "always"],
@@ -83,6 +84,7 @@
 		"new-cap": ["error", { "newIsCap": true, "capIsNew": false }],
 		"new-parens": "error",
 		"no-array-constructor": "error",
+		"no-async-promise-executor": 0,
 		"no-caller": "error",
 		"no-class-assign": "error",
 		"no-compare-neg-zero": "error",
@@ -93,7 +95,7 @@
 		"no-debugger": "error",
 		"no-delete-var": "error",
 		"no-dupe-args": "error",
-		"no-dupe-class-members": "error",
+		"no-dupe-class-members": 0,
 		"no-dupe-keys": "error",
 		"no-duplicate-case": "error",
 		"no-empty-character-class": "error",

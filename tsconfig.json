@@ -3,6 +3,7 @@
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
+		"declaration": true,
 		"jsx": "react",
 		"noImplicitReturns": true,
 		"noUnusedLocals": true,
