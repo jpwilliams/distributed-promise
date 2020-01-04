@@ -15,7 +15,14 @@
     "type": "git",
     "url": "git+https://github.com/jpwilliams/distributed-promise.git"
   },
-  "keywords": [],
+  "keywords": [
+    "distributed",
+    "promise",
+    "shared",
+    "redis",
+    "cache",
+    "memo"
+  ],
   "author": "Jack Williams <@jpwilliams>",
   "license": "MIT",
   "bugs": {
