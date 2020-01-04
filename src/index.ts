@@ -16,7 +16,7 @@ interface InternalDistributedPromiseConfig {
 	notifPrefix: string;
 	keyPrefix: string;
 	keySeperator: string;
-	defaultTtl: number;
+	ttl: number;
 }
 
 export interface DistributedPromiseConfig extends Partial<InternalDistributedPromiseConfig> {
@@ -50,7 +50,7 @@ export class DistributedPromiseWrapper {
 			lockPrefix: config.lockPrefix ?? 'lock',
 			notifPrefix: config.notifPrefix ?? 'notif',
 			keySeperator: config.keySeperator ?? ':',
-			defaultTtl: config.defaultTtl ?? (1000 * 60 * 30)
+			ttl: config.ttl ?? (1000 * 60 * 30)
 		}
 
 		this._subscriber = this._config.redis.duplicate()
