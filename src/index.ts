@@ -58,20 +58,20 @@ export class DistributedPromiseWrapper {
 		debug('created new DistributedPromiseWrapper')
 	}
 
-	public wrap<T extends (...args: any[]) => Promise<string>> (
+	public wrap<T extends (...args: any[]) => Promise<any>> (
 		work: T,
 		config: WrapConfig
-	): (...args: Parameters<T>) => Promise<string>;
+	): (...args: Parameters<T>) => ReturnType<T>;
 
-	public wrap<T extends (...args: any[]) => Promise<string>> (
+	public wrap<T extends (...args: any[]) => Promise<any>> (
 		work: T,
 		rawKey?: string
-	): (...args: Parameters<T>) => Promise<string>;
+	): (...args: Parameters<T>) => ReturnType<T>;
 
-	public wrap<T extends (...args: any[]) => Promise<string>> (
+	public wrap<T extends (...args: any[]) => Promise<any>> (
 		work: T,
 		extra?: WrapConfig | string
-	): (...args: Parameters<T>) => Promise<string> {
+	): (...args: Parameters<T>) => ReturnType<T> {
 		const inputConfig: WrapConfig = extra
 			? typeof extra === 'string'
 				? { key: extra }
@@ -91,7 +91,7 @@ export class DistributedPromiseWrapper {
 		// const U = Promise
 		debug('wrapping', work)
 
-		return (...args: Parameters<T>): Promise<string> => new Promise<string>(async (resolve, reject) => {
+		return (...args: Parameters<T>): ReturnType<T> => new Promise(async (resolve, reject) => {
 			const key = [config.key, generateObjectSignature(args)].join(this._config.keySeperator)
 
 			debug('running', work, `; internal key is "${key}"`)
@@ -135,8 +135,6 @@ export class DistributedPromiseWrapper {
 				await this._unsubscribe(key, cleanUp)
 				debug('unsubscribed')
 
-				if (!data) return
-
 				if (data instanceof Error) {
 					console.error(data)
 
@@ -166,24 +164,34 @@ export class DistributedPromiseWrapper {
 			}
 
 			debug('refetch cold; waiting for data from redis')
-		})
+		}) as ReturnType<T>
 	}
 
-	private _get (key: string): Promise<string> {
+	private _parseData (input: string): any {
+		return JSON.parse(input)
+	}
+
+	private _serialiseData (input: any): string {
+		return JSON.stringify(input)
+	}
+
+	private _get (key: string): Promise<any> {
 		const dataKey = this._getDataKey(key)
 
 		return new Promise((resolve, reject) => {
 			debug(`getting data from "${dataKey}"`)
 
-			this._config.redis.get(dataKey, (err, value) => {
+			this._config.redis.get(dataKey, (err, serialisedData) => {
 				if (err) return reject(err)
 
-				return resolve(value)
+				const data = this._parseData(serialisedData)
+
+				return resolve(data)
 			})
 		})
 	}
 
-	private async _pushData (key: string, data: string): Promise<boolean> {
+	private async _pushData (key: string, data: any): Promise<boolean> {
 		const dataKey = this._getDataKey(key)
 		const notifKey = this._getNotifKey(key)
 
@@ -191,9 +199,11 @@ export class DistributedPromiseWrapper {
 			debug(`pushing data to "${dataKey}"`)
 			debug(`notifying listeners of data at "${notifKey}"`)
 
+			const serialisedData = this._serialiseData(data)
+
 			this._config.redis.multi()
-				.psetex(dataKey, this._config.ttl, data)
-				.publish(notifKey, data)
+				.psetex(dataKey, this._config.ttl, serialisedData)
+				.publish(notifKey, serialisedData)
 				.exec((err) => {
 					if (err) return reject(err)
 
@@ -220,9 +230,12 @@ export class DistributedPromiseWrapper {
 		return this._subscriber.unsubscribe(notifKey)
 	}
 
-	private _messageReceived (channel: string, message: string): void {
+	private _messageReceived (channel: string, serialisedData: string): void {
 		debug(`received "${channel}" message from redis`)
-		this._emitter.emit(channel, message)
+
+		const data = this._parseData(serialisedData)
+
+		this._emitter.emit(channel, data)
 	}
 
 	private async _getLock (key: string): Promise<boolean> {
