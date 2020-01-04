@@ -23,8 +23,7 @@
   },
   "homepage": "https://github.com/jpwilliams/distributed-promise#readme",
   "files": [
-    "lib",
-    "index.d.ts"
+    "lib"
   ],
   "devDependencies": {
     "@types/debug": "^4.1.5",
