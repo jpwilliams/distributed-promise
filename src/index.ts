@@ -7,7 +7,6 @@ import { ulid } from 'ulid'
 
 // local
 import { generateObjectSignature } from './utils/generateObjectSignature'
-import { debug } from './utils/debug'
 
 interface InternalDistributedPromiseConfig {
 	redis: RedisClient;
@@ -55,7 +54,6 @@ export class DistributedPromiseWrapper {
 
 		this._subscriber = this._config.redis.duplicate()
 		this._subscriber.on('message', this._messageReceived.bind(this))
-		debug('created new DistributedPromiseWrapper')
 	}
 
 	public wrap<T extends (...args: any[]) => Promise<any>> (
@@ -89,51 +87,31 @@ export class DistributedPromiseWrapper {
 
 		// fix typescript issue when type aliasing promise return types
 		// const U = Promise
-		debug('wrapping', work)
 
 		return (...args: Parameters<T>): ReturnType<T> => new Promise(async (resolve, reject) => {
 			const key = [config.key, generateObjectSignature(args)].join(this._config.keySeperator)
 
-			debug('running', work, `; internal key is "${key}"`)
-			debug('fetching cached data')
-
 			// see if we can get from cache straight away
 			let cachedData = await this._get(key)
-
-			if (cachedData) {
-				debug('cache hit; returning data')
-
-				return resolve(cachedData)
-			}
+			if (cachedData) return resolve(cachedData)
 
 			// cache miss
-			debug('cache miss')
-
 			// try getting lock to see if we perform work
-			debug('attempting to get lock')
 			const haveLock = await this._getLock(key)
 
 			if (haveLock) {
-				debug('got lock, so performing work via', work)
 				const freshData = await work(...args)
-				debug('work complete; pushing data')
 				await this._pushData(key, freshData)
-				debug('data pushed; returning data')
 
 				return resolve(freshData)
 			}
 
 			// no lock
-			debug('could not get lock; another process must be performing work, so setting up subscriber')
-
 			const timerId = ulid()
 
 			const cleanUp = async (data?: any): Promise<void> => {
-				debug('cleaning up after cache attempts')
 				clearTimeout(this._timers[timerId])
-				debug('cleared timeout')
 				await this._unsubscribe(key, cleanUp)
-				debug('unsubscribed')
 
 				if (data instanceof Error) {
 					console.error(data)
@@ -150,21 +128,12 @@ export class DistributedPromiseWrapper {
 				new Error('Failed to perform work waiting for another process.')
 			)
 
-			debug('timeout set; subscribing...')
-
 			await this._subscribe(key, cleanUp)
 
 			// refetch in case we missed from cache
-			debug('attempt refetch in case we missed from cache')
 			cachedData = await this._get(key)
-
-			if (cachedData) {
-				debug('refetch worked; cleaning up and returning data')
-				return cleanUp(cachedData)
-			}
-
-			debug('refetch cold; waiting for data from redis')
-		}) as ReturnType<T>
+			if (cachedData) return cleanUp(cachedData)
+		})
 	}
 
 	private _parseData (input: string): any {
@@ -179,8 +148,6 @@ export class DistributedPromiseWrapper {
 		const dataKey = this._getDataKey(key)
 
 		return new Promise((resolve, reject) => {
-			debug(`getting data from "${dataKey}"`)
-
 			this._config.redis.get(dataKey, (err, serialisedData) => {
 				if (err) return reject(err)
 
@@ -196,9 +163,6 @@ export class DistributedPromiseWrapper {
 		const notifKey = this._getNotifKey(key)
 
 		return new Promise((resolve, reject) => {
-			debug(`pushing data to "${dataKey}"`)
-			debug(`notifying listeners of data at "${notifKey}"`)
-
 			const serialisedData = this._serialiseData(data)
 
 			this._config.redis.multi()
@@ -214,8 +178,6 @@ export class DistributedPromiseWrapper {
 
 	private async _subscribe (key: string, callback: (...args: any[]) => void): Promise<boolean> {
 		const notifKey = this._getNotifKey(key)
-
-		debug(`listening to messages from "${notifKey}"`)
 		this._emitter.once(notifKey, callback)
 
 		return this._subscriber.subscribe(notifKey)
@@ -223,16 +185,12 @@ export class DistributedPromiseWrapper {
 
 	private async _unsubscribe (key: string, callback: (...args: any[]) => void): Promise<boolean> {
 		const notifKey = this._getNotifKey(key)
-
-		debug(`removing listener from "${notifKey}"`)
 		this._emitter.removeListener(notifKey, callback)
 
 		return this._subscriber.unsubscribe(notifKey)
 	}
 
 	private _messageReceived (channel: string, serialisedData: string): void {
-		debug(`received "${channel}" message from redis`)
-
 		const data = this._parseData(serialisedData)
 
 		this._emitter.emit(channel, data)
@@ -242,8 +200,6 @@ export class DistributedPromiseWrapper {
 		const lockKey = this._getLockKey(key)
 
 		return new Promise((resolve, reject) => {
-			debug(`attempting to get lock at "${lockKey}"`)
-
 			this._config.redis.set(
 				lockKey, // key
 				'1', // value
