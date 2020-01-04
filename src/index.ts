@@ -8,6 +8,8 @@ import { ulid } from 'ulid'
 // local
 import { generateObjectSignature } from './utils/generateObjectSignature'
 
+type ThenArg<T> = T extends Promise<infer U> ? U : T extends ((...args: any[]) => Promise<infer V>) ? V : T
+
 interface InternalDistributedPromiseConfig {
 	redis: RedisClient;
 	lockTimeout: number;
@@ -56,20 +58,20 @@ export class DistributedPromiseWrapper {
 		this._subscriber.on('message', this._messageReceived.bind(this))
 	}
 
-	public wrap<T extends (...args: any[]) => Promise<any>> (
+	public wrap<T extends (...args: any[]) => any> (
 		work: T,
 		config: WrapConfig
-	): (...args: Parameters<T>) => ReturnType<T>;
+	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>>;
 
-	public wrap<T extends (...args: any[]) => Promise<any>> (
+	public wrap<T extends (...args: any[]) => any> (
 		work: T,
 		rawKey?: string
-	): (...args: Parameters<T>) => ReturnType<T>;
+	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>>;
 
-	public wrap<T extends (...args: any[]) => Promise<any>> (
+	public wrap<T extends (...args: any[]) => any> (
 		work: T,
 		extra?: WrapConfig | string
-	): (...args: Parameters<T>) => ReturnType<T> {
+	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>> {
 		const inputConfig: WrapConfig = extra
 			? typeof extra === 'string'
 				? { key: extra }
@@ -88,7 +90,7 @@ export class DistributedPromiseWrapper {
 		// fix typescript issue when type aliasing promise return types
 		// const U = Promise
 
-		return (...args: Parameters<T>): ReturnType<T> => new Promise(async (resolve, reject) => {
+		return (...args: Parameters<T>): Promise<ThenArg<ReturnType<T>>> => new Promise(async (resolve, reject) => {
 			const key = [config.key, generateObjectSignature(args)].join(this._config.keySeperator)
 
 			// see if we can get from cache straight away
