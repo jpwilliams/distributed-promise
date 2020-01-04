@@ -26,4 +26,3 @@ const result = await joinStrShared('foo', 'bar')
 ```
 
 - Can we detect if the work is happening in the same process as us and skip going to Redis at all?
-- Need to `set` with a TTL. Ideally this TTL comes from the function that runs (e.g. pulls a webpage, gets from headers it should cache for 5 minutes). This would require, however, rewriting existing functions. Hmm.

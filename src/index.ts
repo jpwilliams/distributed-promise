@@ -192,7 +192,7 @@ export class DistributedPromiseWrapper {
 			debug(`notifying listeners of data at "${notifKey}"`)
 
 			this._config.redis.multi()
-				.set(dataKey, data)
+				.psetex(dataKey, this._config.ttl, data)
 				.publish(notifKey, data)
 				.exec((err) => {
 					if (err) return reject(err)
