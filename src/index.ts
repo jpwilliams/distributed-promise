@@ -8,7 +8,9 @@ import { ulid } from 'ulid'
 // local
 import { generateObjectSignature } from './utils/generateObjectSignature'
 
-type AsyncReturnType<T extends (...args: any) => any> =
+export type InputFn = (...args: any) => any
+
+type AsyncReturnType<T extends InputFn> =
 	T extends (...args: any) => Promise<infer U> ? U :
 	T extends (...args: any) => infer U ? U :
 	any
@@ -61,17 +63,17 @@ export class DistributedPromiseWrapper {
 		this._subscriber.on('message', this._messageReceived.bind(this))
 	}
 
-	public wrap<T extends (...args: any) => any> (
+	public wrap<T extends InputFn> (
 		work: T,
 		config: WrapConfig
 	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>>;
 
-	public wrap<T extends (...args: any) => any> (
+	public wrap<T extends InputFn> (
 		work: T,
 		rawKey?: string
 	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>>;
 
-	public wrap<T extends (...args: any) => any> (
+	public wrap<T extends InputFn> (
 		work: T,
 		extra?: WrapConfig | string
 	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>> {
