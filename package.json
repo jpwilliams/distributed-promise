@@ -1,6 +1,6 @@
 {
   "name": "@jpwilliams/distributed-promise",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Distribute a promise across multiple processes connected via Redis.",
   "main": "lib/index.js",
   "scripts": {
