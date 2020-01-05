@@ -8,7 +8,10 @@ import { ulid } from 'ulid'
 // local
 import { generateObjectSignature } from './utils/generateObjectSignature'
 
-type ThenArg<T> = T extends Promise<infer U> ? U : T extends ((...args: any[]) => Promise<infer V>) ? V : T
+type AsyncReturnType<T extends (...args: any) => any> =
+	T extends (...args: any) => Promise<infer U> ? U :
+	T extends (...args: any) => infer U ? U :
+	any
 
 interface InternalDistributedPromiseConfig {
 	redis: RedisClient;
@@ -58,20 +61,20 @@ export class DistributedPromiseWrapper {
 		this._subscriber.on('message', this._messageReceived.bind(this))
 	}
 
-	public wrap<T extends (...args: any[]) => any> (
+	public wrap<T extends (...args: any) => any> (
 		work: T,
 		config: WrapConfig
-	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>>;
+	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>>;
 
-	public wrap<T extends (...args: any[]) => any> (
+	public wrap<T extends (...args: any) => any> (
 		work: T,
 		rawKey?: string
-	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>>;
+	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>>;
 
-	public wrap<T extends (...args: any[]) => any> (
+	public wrap<T extends (...args: any) => any> (
 		work: T,
 		extra?: WrapConfig | string
-	): (...args: Parameters<T>) => Promise<ThenArg<ReturnType<T>>> {
+	): (...args: Parameters<T>) => Promise<AsyncReturnType<T>> {
 		const inputConfig: WrapConfig = extra
 			? typeof extra === 'string'
 				? { key: extra }
@@ -90,7 +93,7 @@ export class DistributedPromiseWrapper {
 		// fix typescript issue when type aliasing promise return types
 		// const U = Promise
 
-		return (...args: Parameters<T>): Promise<ThenArg<ReturnType<T>>> => new Promise(async (resolve, reject) => {
+		return (...args: Parameters<T>): Promise<AsyncReturnType<T>> => new Promise(async (resolve, reject) => {
 			const key = [config.key, generateObjectSignature(args)].join(this._config.keySeperator)
 
 			// see if we can get from cache straight away
@@ -178,14 +181,14 @@ export class DistributedPromiseWrapper {
 		})
 	}
 
-	private async _subscribe (key: string, callback: (...args: any[]) => void): Promise<boolean> {
+	private async _subscribe (key: string, callback: (...args: any) => void): Promise<boolean> {
 		const notifKey = this._getNotifKey(key)
 		this._emitter.once(notifKey, callback)
 
 		return this._subscriber.subscribe(notifKey)
 	}
 
-	private async _unsubscribe (key: string, callback: (...args: any[]) => void): Promise<boolean> {
+	private async _unsubscribe (key: string, callback: (...args: any) => void): Promise<boolean> {
 		const notifKey = this._getNotifKey(key)
 		this._emitter.removeListener(notifKey, callback)
 
