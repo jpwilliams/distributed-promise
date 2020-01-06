@@ -1,5 +1,7 @@
 # @jpwilliams/distributed-promise
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/jpwilliams/distributed-promise.svg)](https://greenkeeper.io/)
+
 Distribute a promise across multiple processes connected via Redis. If two seperate processes make the same call, only one will actually do the work, but both promises will return simultaneously with the same data.
 
 Has pretty types and works with any data compatible with `JSON.stringify` and `JSON.parse`.
