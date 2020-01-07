@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "callsites": "^3.1.0",
+    "sigmund": "^1.0.1",
     "ulid": "^2.3.0"
   }
 }
