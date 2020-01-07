@@ -18,5 +18,13 @@
 		"node_modules",
 		"**/*.test.ts",
 		"**/*.spec.ts"
-	]
+	],
+	"typedocOptions": {
+		"mode": "file",
+		"module": "commonjs",
+		"out": "docs",
+		"excludeExternals": true,
+		"excludeNotExported": true
+	}
 }
+
