@@ -54,7 +54,7 @@
     "redis": "^2.8.0",
     "ts-jest": "^24.2.0",
     "ts-node": "^8.5.4",
-    "typedoc": "^0.15.6",
+    "typedoc": "^0.16.10",
     "typescript": "^3.7.3"
   },
   "dependencies": {
