@@ -53,7 +53,7 @@
     "onchange": "^7.0.2",
     "redis": "^3.0.2",
     "ts-jest": "^25.2.1",
-    "ts-node": "^8.5.4",
+    "ts-node": "^9.0.0",
     "typedoc": "^0.18.0",
     "typescript": "^3.7.3"
   },
