@@ -54,7 +54,7 @@
     "redis": "3.0.2",
     "ts-jest": "25.5.1",
     "ts-node": "9.1.1",
-    "typedoc": "0.20.30",
+    "typedoc": "0.21.10",
     "typescript": "3.9.9"
   },
   "dependencies": {
